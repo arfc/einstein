@@ -6,7 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 
-namespace cycamore {
+namespace einstein {
 
 USInventory::USInventory(cyclus::Context* ctx)
     : cyclus::Facility(ctx),
@@ -18,20 +18,20 @@ USInventory::~USInventory() {}
 // Cyclus 
 // ----------------------------------------------------------------------
 
-#pragma cyclus def schema cycamore::USInventory
-#pragma cyclus def annotations cycamore::USInventory
-#pragma cyclus def initinv cycamore::USInventory
-#pragma cyclus def snapshotinv cycamore::USInventory
-#pragma cyclus def infiletodb cycamore::USInventory
-#pragma cyclus def snapshot cycamore::USInventory
-#pragma cyclus def clone cycamore::USInventory
+#pragma cyclus def schema einstein::USInventory
+#pragma cyclus def annotations einstein::USInventory
+#pragma cyclus def initinv einstein::USInventory
+#pragma cyclus def snapshotinv einstein::USInventory
+#pragma cyclus def infiletodb einstein::USInventory
+#pragma cyclus def snapshot einstein::USInventory
+#pragma cyclus def clone einstein::USInventory
 
 void USInventory::InitFrom(USInventory* m) {
-#pragma cyclus impl initfromcopy cycamore::USInventory
+#pragma cyclus impl initfromcopy einstein::USInventory
 }
 
 void USInventory::InitFrom(cyclus::QueryableBackend* b) {
-#pragma cyclus impl initfromdb cycamore::USInventory
+#pragma cyclus impl initfromdb einstein::USInventory
 }
 
 // ----------------------------------------------------------------------
@@ -508,4 +508,4 @@ extern "C" cyclus::Agent* ConstructUSInventory(cyclus::Context* ctx) {
   return new USInventory(ctx);
 }
 
-}  // namespace cycamore
+}  // namespace einstein

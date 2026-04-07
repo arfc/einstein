@@ -1,5 +1,5 @@
-#ifndef CYCAMORE_US_INVENTORY_H_
-#define CYCAMORE_US_INVENTORY_H_
+#ifndef EINSTEIN_US_INVENTORY_H_
+#define EINSTEIN_US_INVENTORY_H_
 
 #include <string>
 #include <unordered_map>
@@ -7,9 +7,9 @@
 
 #include "cyclus.h"
 #include "cyclus_facility.h"
-#include "cycamore_version.h"
+#include "einstein_version.h"
 
-namespace cycamore {
+namespace einstein {
 
 class USInventory : public cyclus::Facility {
  public:
@@ -26,7 +26,7 @@ class USInventory : public cyclus::Facility {
   virtual std::string str();
   virtual void Tick();
   virtual void Tock();
-  virtual std::string version() { return CYCAMORE_VERSION; }
+  virtual std::string version() { return EINSTEIN_VERSION; }
 
   /// Material supplier interface
   virtual void GetMatlBids(
@@ -120,6 +120,6 @@ class USInventory : public cyclus::Facility {
   #include "toolkit/position.cycpp.h"
 };
 
-}  // namespace cycamore
+}  // namespace einstein
 
-#endif  // CYCAMORE_US_INVENTORY_H_
+#endif  // EINSTEIN_US_INVENTORY_H_
