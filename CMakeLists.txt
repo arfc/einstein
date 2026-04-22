@@ -1,4 +1,4 @@
-# DO NOT DELETE THIS LINE:: tutorial:TutorialLibrary:TutorialFacility
+# Copying this from the archetype tutorial
 SET(STUB_SOURCE_DIR ${CMAKE_SOURCE_DIR})
 
 EXECUTE_PROCESS(COMMAND cyclus --install-path 
@@ -15,7 +15,7 @@ INCLUDE(CyclusBuildSetup)
 cyclus_minimum_cmake_version(MINIMUM_CMAKE_VERSION)
 CMAKE_MINIMUM_REQUIRED(VERSION ${MINIMUM_CMAKE_VERSION})
 
-PROJECT(TutorialLibrary)
+PROJECT(Einstein)
 
 cyclus_require_out_of_source_build()
 cyclus_require_cxx_support()
