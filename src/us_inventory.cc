@@ -6,7 +6,7 @@
 #include <cctype>
 #include <algorithm>
 
-#include "toolkit/mat_query.h"  // optional, but sometimes useful
+#include "toolkit/mat_query.h"  
 
 USInventory::USInventory(cyclus::Context* ctx) : cyclus::Facility(ctx) {}
 
