@@ -6,7 +6,6 @@
 #include <cctype>
 #include <algorithm>
 
-#include "toolkit/mat_query.h"  
 
 USInventory::USInventory(cyclus::Context* ctx) : cyclus::Facility(ctx) {}
 
@@ -117,15 +116,9 @@ void USInventory::GetMatlTrades(
     if (send <= 0.0) break;
 
     // Withdraw mass from bins FIFO
-    // If you want “closest match” by burnup/enr later, this is where you’d choose bins differently.
     cyclus::Composition::Ptr chosen_comp = nullptr;
     double to_make = send;
 
-    // We may need to split across bins with different compositions.
-    // For now: simplest policy = take from the first bin with enough mass.
-    // If not enough, we’ll take what we can from a bin and keep going,
-    // BUT composition would change. To keep it consistent per trade,
-    // we instead enforce: fulfill each trade from a single bin.
     size_t chosen_i = bins_.size();
     for (size_t i = 0; i < bins_.size(); ++i) {
       if (bins_[i].available_kg > 0.0) {
@@ -156,7 +149,7 @@ void USInventory::GetMatlTrades(
 // ------------------------- CSV Loading -------------------------
 
 static std::vector<std::string> SplitCSVLine(const std::string& line) {
-  // Simple CSV splitter (no quoted commas). Good enough if your files are simple.
+  // Simple CSV splitter
   std::vector<std::string> out;
   std::stringstream ss(line);
   std::string item;
@@ -258,8 +251,8 @@ void USInventory::LoadCompositionCSV_(const std::string& path) {
   for (auto& kv : compmaps) {
     const std::string& aid = kv.first;
     auto it = idx_.find(aid);
-    if (it == idx_.end()) continue; // composition for an assembly not in assemblies.csv (skip)
-    // CreateFromMass expects mass fractions or masses; relative values are fine.
+    if (it == idx_.end()) continue; // composition for an assembly not in assemblies.csv
+    // CreateFromMass expects mass fractions or masses.
     bins_[it->second].comp = cyclus::Composition::CreateFromMass(kv.second);
   }
 }
@@ -268,9 +261,6 @@ void USInventory::LoadCompositionCSV_(const std::string& path) {
 
 int USInventory::NucIdFromString_(const std::string& s) const {
   // Minimal parser for strings like "U235", "Pu239", "Cs137".
-  // Produces zzaaam * 10? Cyclus commonly uses zzaaam format (e.g., 922350).
-  // We'll return zzaaam where m=0.
-  // If your dataset uses other forms (e.g., "U-235" or "92235"), tell me and I’ll adjust.
 
   std::string t = s;
   // Remove '-' and spaces
@@ -292,7 +282,7 @@ int USInventory::NucIdFromString_(const std::string& s) const {
   int A = std::stoi(a_str);
   if (A <= 0) throw std::runtime_error("Bad mass number in nuclide: '" + s + "'");
 
-  // Small element->Z map (extend as needed). Tell me if you have lots of elements beyond these.
+  // Small element->Z map
   static const std::unordered_map<std::string, int> Z = {
     {"H",1},{"He",2},{"Li",3},{"Be",4},{"B",5},{"C",6},{"N",7},{"O",8},{"F",9},{"Ne",10},
     {"Na",11},{"Mg",12},{"Al",13},{"Si",14},{"P",15},{"S",16},{"Cl",17},{"Ar",18},
