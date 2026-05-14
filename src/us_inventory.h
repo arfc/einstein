@@ -23,7 +23,6 @@ class USInventory : public cyclus::Facility,
 
  public:
   USInventory(cyclus::Context* ctx);
-
   virtual ~USInventory();
 
   #pragma cyclus note { \
@@ -44,7 +43,6 @@ class USInventory : public cyclus::Facility,
   #pragma cyclus def initinv
 
   virtual void InitFrom(USInventory* m);
-
   virtual void InitFrom(cyclus::QueryableBackend* b);
 
   virtual void Tick() {};
@@ -52,7 +50,6 @@ class USInventory : public cyclus::Facility,
   virtual void Tock() {};
 
   virtual std::string str();
-
   virtual void EnterNotify();
 
   virtual std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr>
@@ -64,6 +61,8 @@ class USInventory : public cyclus::Facility,
                             cyclus::Material::Ptr> >& responses);
 
  private:
+  // Cyclus state variables
+
   #pragma cyclus var { \
     "tooltip": "Commodity this facility supplies.", \
     "doc": "Output commodity on which the USInventory facility offers " \
@@ -76,8 +75,8 @@ class USInventory : public cyclus::Facility,
   #pragma cyclus var { \
     "tooltip": "Path to assemblies CSV file.", \
     "doc": "Path to a CSV file containing assembly IDs and total available " \
-           "masses. Expected columns include assembly_id and total_mass_kg. " \
-           "An optional count column may be used to scale the total mass.", \
+           "masses. Required columns: assembly_id, total_mass_kg. " \
+           "Optional columns: count, discharge_date, burnup, enrichment.", \
     "uilabel": "Assemblies File", \
   }
   std::string assemblies_file;
@@ -85,8 +84,7 @@ class USInventory : public cyclus::Facility,
   #pragma cyclus var { \
     "tooltip": "Path to composition CSV file.", \
     "doc": "Path to a CSV file containing isotopic mass fractions for each " \
-           "assembly. Expected columns include assembly_id, nuclide, and " \
-           "mass_fraction.", \
+           "assembly. Required columns: assembly_id, nuclide, mass_fraction.", \
     "uilabel": "Composition File", \
   }
   std::string composition_file;
@@ -98,7 +96,7 @@ class USInventory : public cyclus::Facility,
     "uilabel": "Maximum Throughput", \
     "uitype": "range", \
     "range": [0.0, CY_LARGE_DOUBLE], \
-    "doc": "amount of commodity that can be supplied at each time step", \
+    "doc": "Amount of commodity that can be supplied at each time step.", \
   }
   double throughput_kg;
 
@@ -113,24 +111,69 @@ class USInventory : public cyclus::Facility,
   }
   bool allow_partial;
 
+  #pragma cyclus var { \
+    "default": "first", \
+    "tooltip": "Policy used to select which bin to draw from.", \
+    "doc": "Controls which assembly bin is chosen when fulfilling a trade. " \
+           "Options: " \
+           "'first' - always pick the earliest bin with available material; " \
+           "'older' - prefer the bin with the smallest discharge_date; " \
+           "'newer' - prefer the bin with the largest discharge_date; " \
+           "'highest_burnup' - prefer the bin with the highest burnup; " \
+           "'lowest_burnup' - prefer the bin with the lowest burnup; " \
+           "'highest_enrichment' - prefer the bin with the highest initial enrichment; " \
+           "'lowest_enrichment' - prefer the bin with the lowest initial enrichment.", \
+    "uilabel": "Bin Selection Policy", \
+  }
+  std::string selection_policy;
+
+  #pragma cyclus var { \
+    "default": [], \
+    "doc": "Persisted remaining mass (kg) for each assembly bin. " \
+           "Managed internally — do not set by hand.", \
+    "uilabel": "Remaining Masses (internal)", \
+  }
+  std::vector<double> remaining_kg_;
+
+  // ---------------------------------------------------------------------------
+  // Internal (non-persisted) data structures
+  // ---------------------------------------------------------------------------
+
+  /// One entry per assembly (or assembly group) read from the CSV.
   struct Bin {
     std::string assembly_id;
-    double available_kg;
+    double available_kg   = 0.0;
+    double discharge_date = 0.0;  // optional: used by older/newer policy
+    double burnup         = 0.0;  // optional: used by highest/lowest_burnup
+    double enrichment     = 0.0;  // optional: used by highest/lowest_enrichment
     cyclus::Composition::Ptr comp;
   };
 
   std::vector<Bin> bins_;
+  std::unordered_map<std::string, size_t> idx_;  // assembly_id -> bins_ index
+  double total_inventory_kg_;                     // running total for fast checks
 
-  std::unordered_map<std::string, size_t> idx_;
+  // ---------------------------------------------------------------------------
+  // Private helpers
+  // ---------------------------------------------------------------------------
+
+  /// Return the index of the best bin for a trade of req_qty kg according to
+  /// selection_policy. If full_only is true only bins that can fully satisfy
+  /// req_qty are considered. Returns bins_.size() if no suitable bin is found.
+  size_t ChooseBin_(double req_qty, bool full_only) const;
+
+  /// Build a Composition that is a mass-weighted blend of the bins drawn from.
+  /// draw_kg[i] is the mass drawn from bins_[i].
+  cyclus::Composition::Ptr BlendedComp_(
+      const std::vector<double>& draw_kg) const;
 
   void LoadAssembliesCSV_(const std::string& path);
-
   void LoadCompositionCSV_(const std::string& path);
 
+  /// Convert a nuclide string (e.g. "U-235", "U235", "92235") to a PyNE id.
   int NucIdFromString_(const std::string& s) const;
 };
 
 }  // namespace einstein
-
 
 #endif  // EINSTEIN_SRC_US_INVENTORY_H_
