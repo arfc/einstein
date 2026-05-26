@@ -11,28 +11,28 @@
 
 namespace einstein {
 
-USInventory::USInventory(cyclus::Context* ctx)
+us_inventory::us_inventory(cyclus::Context* ctx)
     : cyclus::Facility(ctx),
       total_inventory_kg_(0.0) {}
 
-USInventory::~USInventory() {}
+us_inventory::~us_inventory() {}
 
-void USInventory::InitFrom(USInventory* m) {
-  #pragma cyclus impl initfromcopy einstein::USInventory
+void us_inventory::InitFrom(us_inventory* m) {
+  #pragma cyclus impl initfromcopy einstein::us_inventory
   cyclus::toolkit::CommodityProducer::Copy(m);
 }
 
-void USInventory::InitFrom(cyclus::QueryableBackend* b) {
-  #pragma cyclus impl initfromdb einstein::USInventory
+void us_inventory::InitFrom(cyclus::QueryableBackend* b) {
+  #pragma cyclus impl initfromdb einstein::us_inventory
   namespace tk = cyclus::toolkit;
   tk::CommodityProducer::Add(tk::Commodity(outcommod),
                              tk::CommodInfo(throughput_kg, throughput_kg));
 }
 
-std::string USInventory::str() {
+std::string us_inventory::str() {
   std::stringstream ss;
   ss << cyclus::Facility::str()
-     << " USInventory(outcommod=" << outcommod
+     << " us_inventory(outcommod=" << outcommod
      << ", bins=" << bins_.size()
      << ", total_inventory_kg=" << total_inventory_kg_
      << ", throughput_kg=" << throughput_kg
@@ -41,15 +41,15 @@ std::string USInventory::str() {
   return ss.str();
 }
 
-void USInventory::EnterNotify() {
+void us_inventory::EnterNotify() {
   cyclus::Facility::EnterNotify();
 
   if (outcommod.empty()) {
-    throw cyclus::ValueError("USInventory: outcommod is required.");
+    throw cyclus::ValueError("us_inventory: outcommod is required.");
   }
   if (assemblies_file.empty() || composition_file.empty()) {
     throw cyclus::ValueError(
-        "USInventory: assemblies_file and composition_file are required.");
+        "us_inventory: assemblies_file and composition_file are required.");
   }
 
   // Validating the selection_policy early so the user gets a clear error.
@@ -63,7 +63,7 @@ void USInventory::EnterNotify() {
   }
   if (!policy_ok) {
     throw cyclus::ValueError(
-        "USInventory: unknown selection_policy '" + selection_policy + "'. "
+        "us_inventory: unknown selection_policy '" + selection_policy + "'. "
         "Valid options: first, older, newer, highest_burnup, lowest_burnup, "
         "highest_enrichment, lowest_enrichment.");
   }
@@ -79,7 +79,7 @@ void USInventory::EnterNotify() {
   if (!remaining_kg_.empty()) {
     if (remaining_kg_.size() != bins_.size()) {
       throw cyclus::ValueError(
-          "USInventory: persisted remaining_kg_ length does not match "
+          "us_inventory: persisted remaining_kg_ length does not match "
           "the number of rows in assemblies_file. Did the CSV change "
           "after a checkpoint?");
     }
@@ -99,14 +99,14 @@ void USInventory::EnterNotify() {
   for (size_t i = 0; i < bins_.size(); ++i) {
     if (bins_[i].comp == NULL) {
       throw cyclus::ValueError(
-          "USInventory: missing composition for assembly_id=" +
+          "us_inventory: missing composition for assembly_id=" +
           bins_[i].assembly_id);
     }
   }
 }
 
 std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr>
-USInventory::GetMatlBids(
+us_inventory::GetMatlBids(
     cyclus::CommodMap<cyclus::Material>::type& commod_requests) {
   using cyclus::BidPortfolio;
   using cyclus::CapacityConstraint;
@@ -173,7 +173,7 @@ USInventory::GetMatlBids(
 // Choosing a Bin/ SNF assembly
 
 
-size_t USInventory::ChooseBin_(double req_qty, bool full_only) const {
+size_t us_inventory::ChooseBin_(double req_qty, bool full_only) const {
   size_t best = bins_.size();
 
   for (size_t i = 0; i < bins_.size(); ++i) {
@@ -212,7 +212,7 @@ size_t USInventory::ChooseBin_(double req_qty, bool full_only) const {
 }
 
 
-void USInventory::GetMatlTrades(
+void us_inventory::GetMatlTrades(
     const std::vector<cyclus::Trade<cyclus::Material> >& trades,
     std::vector<std::pair<cyclus::Trade<cyclus::Material>,
                           cyclus::Material::Ptr> >& responses) {
@@ -268,7 +268,7 @@ void USInventory::GetMatlTrades(
 
     responses.push_back(std::make_pair(tr, mat));
 
-    LOG(cyclus::LEV_INFO5, "USInventory")
+    LOG(cyclus::LEV_INFO5, "us_inventory")
         << prototype() << " sent " << actual << " kg of " << outcommod
         << " from bin " << b.assembly_id
         << " (policy=" << selection_policy << ")";
@@ -277,7 +277,7 @@ void USInventory::GetMatlTrades(
 
 // BlendedComp_
 
-cyclus::Composition::Ptr USInventory::BlendedComp_(
+cyclus::Composition::Ptr us_inventory::BlendedComp_(
     const std::vector<double>& draw_kg) const {
   cyclus::CompMap blended;
   double total = 0.0;
@@ -328,13 +328,13 @@ std::vector<std::string> SplitCSVLine(const std::string& line) {
 
 }  
 
-void USInventory::LoadAssembliesCSV_(const std::string& path) {
+void us_inventory::LoadAssembliesCSV_(const std::string& path) {
   std::ifstream f(path.c_str());
-  if (!f) throw cyclus::ValueError("USInventory: cannot open " + path);
+  if (!f) throw cyclus::ValueError("us_inventory: cannot open " + path);
 
   std::string header;
   if (!std::getline(f, header))
-    throw cyclus::ValueError("USInventory: empty file " + path);
+    throw cyclus::ValueError("us_inventory: empty file " + path);
 
   std::vector<std::string> cols = SplitCSVLine(header);
 
@@ -357,7 +357,7 @@ void USInventory::LoadAssembliesCSV_(const std::string& path) {
 
   if (i_id < 0 || i_mass < 0) {
     throw cyclus::ValueError(
-        "USInventory: assemblies.csv must contain assembly_id and "
+        "us_inventory: assemblies.csv must contain assembly_id and "
         "total_mass_kg columns.");
   }
 
@@ -400,16 +400,16 @@ void USInventory::LoadAssembliesCSV_(const std::string& path) {
   }
 
   if (bins_.empty())
-    throw cyclus::ValueError("USInventory: no rows loaded from " + path);
+    throw cyclus::ValueError("us_inventory: no rows loaded from " + path);
 }
 
-void USInventory::LoadCompositionCSV_(const std::string& path) {
+void us_inventory::LoadCompositionCSV_(const std::string& path) {
   std::ifstream f(path.c_str());
-  if (!f) throw cyclus::ValueError("USInventory: cannot open " + path);
+  if (!f) throw cyclus::ValueError("us_inventory: cannot open " + path);
 
   std::string header;
   if (!std::getline(f, header))
-    throw cyclus::ValueError("USInventory: empty file " + path);
+    throw cyclus::ValueError("us_inventory: empty file " + path);
 
   std::vector<std::string> cols = SplitCSVLine(header);
 
@@ -425,7 +425,7 @@ void USInventory::LoadCompositionCSV_(const std::string& path) {
 
   if (i_id < 0 || i_nuc < 0 || i_frac < 0) {
     throw cyclus::ValueError(
-        "USInventory: composition.csv must contain assembly_id, nuclide, "
+        "us_inventory: composition.csv must contain assembly_id, nuclide, "
         "and mass_fraction columns.");
   }
 
@@ -461,7 +461,7 @@ void USInventory::LoadCompositionCSV_(const std::string& path) {
 // Nuclide parsing — I should try using PyNE instead of ZZAAAM.
 // ---------------------------------------------------------------------------
 
-int USInventory::NucIdFromString_(const std::string& s) const {
+int us_inventory::NucIdFromString_(const std::string& s) const {
   std::string t = s;
 
   t.erase(
@@ -534,8 +534,8 @@ int USInventory::NucIdFromString_(const std::string& s) const {
   return zzaaam;
 }
 
-extern "C" cyclus::Agent* ConstructUSInventory(cyclus::Context* ctx) {
-  return new USInventory(ctx);
+extern "C" cyclus::Agent* Constructus_inventory(cyclus::Context* ctx) {
+  return new us_inventory(ctx);
 }
 
 }  // namespace einstein

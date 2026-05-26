@@ -17,13 +17,13 @@ namespace einstein {
 /// them internally as inventory bins, and offers material on a configured
 /// output commodity. Material is supplied from the available bins subject to a
 /// per-timestep throughput limit.
-class USInventory : public cyclus::Facility,
+class us_inventory : public cyclus::Facility,
     public cyclus::toolkit::CommodityProducer,
     public cyclus::toolkit::Position {
 
  public:
-  USInventory(cyclus::Context* ctx);
-  virtual ~USInventory();
+  us_inventory(cyclus::Context* ctx);
+  virtual ~us_inventory();
 
   #pragma cyclus note { \
     "doc": "This facility represents a supply inventory of used nuclear fuel " \
@@ -42,7 +42,7 @@ class USInventory : public cyclus::Facility,
   #pragma cyclus def snapshotinv
   #pragma cyclus def initinv
 
-  virtual void InitFrom(USInventory* m);
+  virtual void InitFrom(us_inventory* m);
   virtual void InitFrom(cyclus::QueryableBackend* b);
 
   virtual void Tick() {};
@@ -65,7 +65,7 @@ class USInventory : public cyclus::Facility,
 
   #pragma cyclus var { \
     "tooltip": "Commodity this facility supplies.", \
-    "doc": "Output commodity on which the USInventory facility offers " \
+    "doc": "Output commodity on which the us_inventory facility offers " \
            "used nuclear fuel material.", \
     "uilabel": "Output Commodity", \
     "uitype": "outcommodity", \
