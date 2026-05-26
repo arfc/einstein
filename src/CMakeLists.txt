@@ -1,4 +1,5 @@
 ### DO NOT DELETE THIS COMMENT: INSERT_ARCHETYPES_HERE ###
+USE_CYCLUS("einstein" "ads")
 USE_CYCLUS("einstein" "us_inventory")
 
 INSTALL_CYCLUS_MODULE("einstein" "")

@@ -1,4 +1,4 @@
-# Copying this from the archetype tutorial
+# DO NOT DELETE THIS LINE:: .:einstein:us_inventory
 SET(STUB_SOURCE_DIR ${CMAKE_SOURCE_DIR})
 
 EXECUTE_PROCESS(COMMAND cyclus --install-path 

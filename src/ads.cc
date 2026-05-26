@@ -1,26 +1,26 @@
-#include "us_inventory.h"
+#include "ads.h"
 
 namespace einstein {
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-us_inventory::us_inventory(cyclus::Context* ctx) : cyclus::Facility(ctx) {}
+ads::ads(cyclus::Context* ctx) : cyclus::Facility(ctx) {}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-std::string us_inventory::str() {
+std::string ads::str() {
   return Facility::str();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void us_inventory::Tick() {}
+void ads::Tick() {}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void us_inventory::Tock() {}
+void ads::Tock() {}
 
 // WARNING! Do not change the following this function!!! This enables your
 // archetype to be dynamically loaded and any alterations will cause your
 // archetype to fail.
-extern "C" cyclus::Agent* Constructus_inventory(cyclus::Context* ctx) {
-  return new us_inventory(ctx);
+extern "C" cyclus::Agent* Constructads(cyclus::Context* ctx) {
+  return new ads(ctx);
 }
 
 }  // namespace einstein
