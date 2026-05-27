@@ -28,14 +28,12 @@
 
   <facility>
     <name>us_inventory</name>
-    <lifetime>5</lifetime>
     <config>
       <us_inventory>
         <outcommod>commodity</outcommod>
-        <assemblies_file>assemblies.csv</assemblies_file>
-        <composition_file>composition.csv</composition_file>
-        <outrecipe>commod_recipe</outrecipe>
-        <throughput>1</throughput>
+        <assemblies_file>./assemblies.csv</assemblies_file>
+        <composition_file>./composition.csv</composition_file>
+        <throughput_kg>1000</throughput_kg>
       </us_inventory>
     </config>
   </facility>
@@ -59,7 +57,7 @@
       <name>SingleInstitution</name>
       <initialfacilitylist>
         <entry>
-          <prototype>Source</prototype>
+          <prototype>us_inventory</prototype>
           <number>1</number>
         </entry>
         <entry>
