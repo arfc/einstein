@@ -18,8 +18,7 @@ namespace einstein {
 /// output commodity. Material is supplied from the available bins subject to a
 /// per-timestep throughput limit.
 class us_inventory : public cyclus::Facility,
-    public cyclus::toolkit::CommodityProducer,
-    public cyclus::toolkit::Position {
+    public cyclus::toolkit::CommodityProducer {
 
  public:
   us_inventory(cyclus::Context* ctx);
