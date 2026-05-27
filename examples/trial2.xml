@@ -1,0 +1,82 @@
+<!-- 1 Source Source, 1 Sink Sink -->
+
+<simulation>
+  <control>
+    <duration>10</duration>
+    <startmonth>1</startmonth>
+    <startyear>2000</startyear>
+    <explicit_inventory>1</explicit_inventory>
+  </control>
+
+  <archetypes>
+    <spec>
+      <lib>einstein</lib>
+      <name>us_inventory</name>
+    </spec>
+    <spec>
+      <lib>cycamore</lib>
+      <name>Sink</name>
+    </spec>
+    <spec>
+      <lib>agents</lib>
+      <name>NullRegion</name>
+    </spec>
+    <spec>
+      <lib>agents</lib>
+      <name>NullInst</name>
+    </spec>
+  </archetypes>
+
+  <facility>
+    <name>us_inventory</name>
+    <config>
+      <us_inventory>
+        <outcommod>commodity</outcommod>
+        <assemblies_file>./assemblies.csv</assemblies_file>
+        <composition_file>./composition.csv</composition_file>
+        <throughput_kg>1000</throughput_kg>
+      </us_inventory>
+    </config>
+  </facility>
+
+  <facility>
+    <name>Sink</name>
+    <config>
+      <Sink>
+        <in_commods>
+          <val>commodity</val>
+        </in_commods>
+        <capacity>1</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <region>
+    <name>SingleRegion</name>
+    <config><NullRegion/></config>
+    <institution>
+      <name>SingleInstitution</name>
+      <initialfacilitylist>
+        <entry>
+          <prototype>us_inventory</prototype>
+          <number>1</number>
+        </entry>
+        <entry>
+          <prototype>Sink</prototype>
+          <number>1</number>
+        </entry>
+      </initialfacilitylist>
+      <config><NullInst/></config>
+    </institution>
+  </region>
+
+  <recipe>
+    <name>commod_recipe</name>
+    <basis>mass</basis>
+    <nuclide>
+      <id>010010000</id>
+      <comp>1</comp>
+    </nuclide>
+  </recipe>
+
+</simulation>
