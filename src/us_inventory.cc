@@ -236,7 +236,7 @@ void us_inventory::GetMatlTrades(
     if (chosen_i != bins_.size()) {
       // A bin with enough material was found.
       actual = std::min(req_qty, remaining_throughput);
-      if (!allow_partial && actual < req_qty) continue;
+      if (!allow_partial && bins_[chosen_i].available_kg < req_qty) continue;
     } else {
       // No single bin can fully satisfy the request.
       if (!allow_partial) continue;
