@@ -7,7 +7,12 @@ cmake-build-*/
 example/
 
 #cyclus outputs
-.sqlite
+*.sqlite
+
+#data files
+*.csv
+*.json
+*.jsonl
 
 # CMake files
 CMakeCache.txt
@@ -29,6 +34,7 @@ __pycache__/
 
 # macOS
 .DS_Store
+*.DS_Store
 
 # VSCode
 .vscode/
