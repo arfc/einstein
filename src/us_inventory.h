@@ -1,18 +1,18 @@
 #ifndef EINSTEIN_SRC_US_INVENTORY_H_
 #define EINSTEIN_SRC_US_INVENTORY_H_
-
+ 
 #include <map>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
+ 
 #include "cyclus.h"
-
+ 
 #pragma cyclus exec from cyclus.system import CY_LARGE_DOUBLE
-
+ 
 namespace einstein {
-
+ 
 /// This facility represents a supply inventory of used nuclear fuel assemblies.
 /// It reads assembly metadata and isotopic compositions from a folder of
 /// Standards 5.0.1 JSONL files (one file per facility), stores them internally
@@ -22,11 +22,11 @@ namespace einstein {
 /// throughput limit and an optional facility/storage-type filter.
 class us_inventory : public cyclus::Facility,
     public cyclus::toolkit::CommodityProducer {
-
+ 
  public:
   us_inventory(cyclus::Context* ctx);
   virtual ~us_inventory();
-
+ 
   #pragma cyclus note { \
     "doc": "This facility represents a supply inventory of used nuclear fuel " \
            "assemblies. It reads assembly metadata and isotopic compositions " \
@@ -37,7 +37,7 @@ class us_inventory : public cyclus::Facility,
            "a per-timestep throughput limit and an optional " \
            "facility/storage-type filter.", \
   }
-
+ 
   #pragma cyclus def clone
   #pragma cyclus def schema
   #pragma cyclus def annotations
@@ -45,28 +45,28 @@ class us_inventory : public cyclus::Facility,
   #pragma cyclus def snapshot
   #pragma cyclus def snapshotinv
   #pragma cyclus def initinv
-
+ 
   virtual void InitFrom(us_inventory* m);
   virtual void InitFrom(cyclus::QueryableBackend* b);
-
+ 
   virtual void Tick() {};
-
+ 
   virtual void Tock() {};
-
+ 
   virtual std::string str();
   virtual void EnterNotify();
-
+ 
   virtual std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr>
   GetMatlBids(cyclus::CommodMap<cyclus::Material>::type& commod_requests);
-
+ 
   virtual void GetMatlTrades(
       const std::vector<cyclus::Trade<cyclus::Material> >& trades,
       std::vector<std::pair<cyclus::Trade<cyclus::Material>,
                             cyclus::Material::Ptr> >& responses);
-
+ 
  private:
   // Cyclus state variables
-
+ 
   #pragma cyclus var { \
     "tooltip": "Commodity this facility supplies.", \
     "doc": "Output commodity on which the us_inventory facility offers " \
@@ -75,7 +75,7 @@ class us_inventory : public cyclus::Facility,
     "uitype": "outcommodity", \
   }
   std::string outcommod;
-
+ 
   #pragma cyclus var { \
     "tooltip": "Folder holding the Standards 5.0.1 JSONL files.", \
     "doc": "Path to a folder. Every *.txt / *.jsonl file in it is read into " \
@@ -84,7 +84,7 @@ class us_inventory : public cyclus::Facility,
     "uilabel": "Assembly Data Folder", \
   }
   std::string data_dir;
-
+ 
   #pragma cyclus var { \
     "default": "", \
     "tooltip": "Path to coordinates.sqlite.", \
@@ -94,7 +94,7 @@ class us_inventory : public cyclus::Facility,
     "uilabel": "Coordinates Database", \
   }
   std::string coordinates_file;
-
+ 
   #pragma cyclus var { \
     "default": CY_LARGE_DOUBLE, \
     "tooltip": "Maximum material mass this facility can supply per time step.", \
@@ -105,7 +105,7 @@ class us_inventory : public cyclus::Facility,
     "doc": "Amount of commodity that can be supplied at each time step.", \
   }
   double throughput_kg;
-
+ 
   #pragma cyclus var { \
     "default": True, \
     "tooltip": "Allow partial fulfillment of material requests.", \
@@ -116,7 +116,7 @@ class us_inventory : public cyclus::Facility,
     "uilabel": "Allow Partial Fulfillment", \
   }
   bool allow_partial;
-
+ 
   #pragma cyclus var { \
     "default": "first", \
     "tooltip": "Policy used to select which bin to draw from.", \
@@ -133,7 +133,7 @@ class us_inventory : public cyclus::Facility,
     "uilabel": "Bin Selection Policy", \
   }
   std::string selection_policy;
-
+ 
   #pragma cyclus var { \
     "default": "", \
     "tooltip": "Only supply assemblies from this facility (optional).", \
@@ -143,7 +143,7 @@ class us_inventory : public cyclus::Facility,
     "uilabel": "Preferred Facility", \
   }
   std::string preferred_facility;
-
+ 
   #pragma cyclus var { \
     "default": "", \
     "tooltip": "Only supply assemblies of this storage type (optional).", \
@@ -152,7 +152,7 @@ class us_inventory : public cyclus::Facility,
     "uilabel": "Storage Type Filter", \
   }
   std::string storage_type;
-
+ 
   #pragma cyclus var { \
     "default": False, \
     "tooltip": "Treat preferred_facility/storage_type as hard filters.", \
@@ -165,7 +165,7 @@ class us_inventory : public cyclus::Facility,
     "uilabel": "Strict Filters", \
   }
   bool strict_filters;
-
+ 
   #pragma cyclus var { \
     "default": [], \
     "doc": "Persisted remaining mass (kg) for each assembly bin. " \
@@ -173,11 +173,11 @@ class us_inventory : public cyclus::Facility,
     "uilabel": "Remaining Masses (internal)", \
   }
   std::vector<double> remaining_kg_;
-
+ 
   // ---------------------------------------------------------------------------
   // Internal data structures
   // ---------------------------------------------------------------------------
-
+ 
   /// One entry per assembly read from the JSONL data.
   struct Bin {
     std::string assembly_id;        // unique internal key (facility|loc|id|index)
@@ -185,66 +185,65 @@ class us_inventory : public cyclus::Facility,
     std::string location;           // storage_location_name
     std::string storage_type;       // storage_type_name ('wet' / 'dry')
     std::string orig_id;            // raw assembly_identifier
-
+ 
     double available_kg       = 0.0;
     double discharge_date     = 0.0;  // discharge_year; used by older/newer
     double burnup             = 0.0;  // used by highest/lowest_burnup
     double enrichment         = 0.0;  // used by highest/lowest_enrichment
     double initial_uranium_kg = 0.0;  // used by highest/lowest_initial_uranium
-
+ 
     // Precomputed composition fractions (computed once at load time).
     double fissile_frac = 0.0;        // (U233+U235+Pu239+Pu241) / total mass
     double pu_frac      = 0.0;        // all Pu / total mass
     double ma_frac      = 0.0;        // (Np+Am+Cm) / total mass
-
+ 
     // Geographic coordinates, attached from the coordinates database by plant.
     double latitude  = 0.0;
     double longitude = 0.0;
-
+ 
     cyclus::Composition::Ptr comp;
   };
-
+ 
   std::vector<Bin> bins_;
   std::unordered_map<std::string, size_t> idx_;  // assembly_id -> bins_ index
   double total_inventory_kg_;                     // running total for fast checks
-
+ 
   // Logged-once-per-run flag so soft fallback is visible but not flooding.
   bool fallback_warned_ = false;
-
+ 
   // ---------------------------------------------------------------------------
   // Private helpers
   // ---------------------------------------------------------------------------
-
+ 
   /// True if bin b satisfies the active preferred_facility/storage_type filters.
   bool PassesFilters_(const Bin& b) const;
-
+ 
   /// Return the index of the best bin for a trade of req_qty kg according to
   /// selection_policy. If full_only is true, only bins that can fully satisfy
   /// req_qty are considered. If apply_filters is true, only bins passing
   /// PassesFilters_ are considered. Returns bins_.size() if none is found.
   size_t ChooseBin_(double req_qty, bool full_only, bool apply_filters) const;
-
+ 
   /// Choose a bin for one trade within a pool (filtered or not), trying a
   /// fully-satisfying bin first and then (if allow_partial) a partial one.
   /// Sets *full to true if the chosen bin fully satisfies req_qty.
   size_t ChooseInPool_(double req_qty, bool pool_filtered, bool* full) const;
-
+ 
   /// Build a Composition that is a mass-weighted blend of the bins drawn from.
   /// draw_kg[i] is the mass drawn from bins_[i].
   cyclus::Composition::Ptr BlendedComp_(
       const std::vector<double>& draw_kg) const;
-
+ 
   void LoadAllData_(const std::string& dir);
   void LoadDataJSONL_(const std::string& path);
   void AttachCoordinates_();
   void RecordSupply_(const Bin& b, double qty);
-
+ 
   /// Convert a nuclide string (e.g. "U-235", "u-235", "92235") to a ZZAAAM id.
   int NucIdFromString_(const std::string& s) const;
 };
-
+ 
 }  // namespace einstein
-
-
+ 
+ 
 #endif  // EINSTEIN_SRC_US_INVENTORY_H_
-
