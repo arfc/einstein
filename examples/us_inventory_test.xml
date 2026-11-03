@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simulation>
+  <control>
+    <duration>1</duration>
+    <startyear>2026</startyear>
+    <startmonth>1</startmonth>
+  </control>
+
+  <archetypes>
+    <spec><lib>agents</lib><name>NullRegion</name></spec>
+    <spec><lib>agents</lib><name>NullInst</name></spec>
+    <spec><lib>einstein</lib><name>us_inventory</name></spec>
+    <spec><lib>cycamore</lib><name>Sink</name></spec>
+  </archetypes>
+
+  <facility>
+    <name>TestInventory</name>
+    <config>
+      <us_inventory>
+        <outcommod>spent_fuel</outcommod>
+        <data_dir>mock_data</data_dir>
+        <throughput_kg>1000</throughput_kg>
+        <allow_partial>true</allow_partial>
+        <selection_policy>first</selection_policy>
+      </us_inventory>
+    </config>
+  </facility>
+
+  <facility>
+    <name>TestSink</name>
+    <config>
+      <Sink>
+        <in_commods><val>spent_fuel</val></in_commods>
+        <capacity>1000</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <region>
+    <name>TestRegion</name>
+    <config><NullRegion/></config>
+    <institution>
+      <name>TestInstitution</name>
+      <config><NullInst/></config>
+      <initialfacilitylist>
+        <entry><prototype>TestInventory</prototype><number>1</number></entry>
+        <entry><prototype>TestSink</prototype><number>1</number></entry>
+      </initialfacilitylist>
+    </institution>
+  </region>
+</simulation>

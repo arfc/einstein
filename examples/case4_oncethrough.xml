@@ -1,0 +1,192 @@
+<!-- ==========================================================================
+     EINSTEIN fuel-cycle simulation  -  Case 4: 50% MA / 50% Pu, 3 GW, Pb ADS
+     ONCE-THROUGH (no recycle) - reference case for the recycle comparison.
+
+     Flowsheet (commodities in brackets):
+       us_inventory  [snf]  ->  Separations
+       Separations  [ma_stream] + [pu_stream]  ->  Mixer  [ads_feed]  ->  ADS
+       ADS  [ads_out]  ->  SpentFuelStore        (NO recycle: single pass)
+       Separations  [sep_waste]  ->  WasteRepo   (U, fission products)
+
+     Identical to example_ads_case4_recycle.xml EXCEPT:
+       (a) ads_out removed from the Separations feed_commods, and
+       (b) a SpentFuelStore sink added to receive ads_out.
+     Every other parameter is held fixed so the two runs are directly
+     comparable and any difference is attributable to recycle alone.
+
+     SNF holds ~10x more Pu than MA, so a 50/50 feed cannot come straight out
+     of separations. Separations makes TWO streams and a Mixer pins them at
+     0.5/0.5 by mass to reproduce the Case-4 Serpent feed.
+     ========================================================================== -->
+<simulation>
+
+  <control>
+    <duration>360</duration>
+    <startmonth>1</startmonth>
+    <startyear>2025</startyear>
+    <decay>lazy</decay>
+    <explicit_inventory>1</explicit_inventory>
+  </control>
+
+  <archetypes>
+    <spec><lib>einstein</lib><name>us_inventory</name></spec>
+    <spec><lib>einstein</lib><name>ads</name></spec>
+    <spec><lib>cycamore</lib><name>Separations</name></spec>
+    <spec><lib>cycamore</lib><name>Mixer</name></spec>
+    <spec><lib>cycamore</lib><name>Sink</name></spec>
+    <spec><lib>agents</lib><name>NullRegion</name></spec>
+    <spec><lib>agents</lib><name>NullInst</name></spec>
+  </archetypes>
+
+  <facility>
+    <name>USInventory</name>
+    <config>
+      <us_inventory>
+        <outcommod>snf</outcommod>
+        <data_dir>../UIUC_data</data_dir>
+        <coordinates_file>./coordinates.sqlite</coordinates_file>
+        <throughput_kg>250000</throughput_kg>
+        <selection_policy>highest_minor_actinide</selection_policy>
+        <allow_partial>1</allow_partial>
+      </us_inventory>
+    </config>
+  </facility>
+
+  <!-- Separations: TWO product streams so the Mixer can pin the ratio.
+       ONCE-THROUGH: feed_commods lists fresh SNF only. The ADS discharge is
+       NOT returned here; it goes to SpentFuelStore instead. -->
+  <facility>
+    <name>MASeparations</name>
+    <config>
+      <Separations>
+        <feed_commods>
+          <val>snf</val>
+        </feed_commods>
+        <feedbuf_size>500000</feedbuf_size>
+        <throughput>250000</throughput>
+        <leftover_commod>sep_waste</leftover_commod>
+        <leftoverbuf_size>1e12</leftoverbuf_size>
+        <streams>
+          <item>
+            <commod>ma_stream</commod>
+            <info>
+              <buf_size>30000</buf_size>
+              <efficiencies>
+                <item><comp>Np</comp><eff>0.99</eff></item>
+                <item><comp>Am</comp><eff>0.99</eff></item>
+                <item><comp>Cm</comp><eff>0.99</eff></item>
+              </efficiencies>
+            </info>
+          </item>
+          <item>
+            <commod>pu_stream</commod>
+            <info>
+              <buf_size>-1</buf_size>
+              <efficiencies>
+                <item><comp>Pu</comp><eff>0.99</eff></item>
+              </efficiencies>
+            </info>
+          </item>
+        </streams>
+      </Separations>
+    </config>
+  </facility>
+
+  <!-- Mixer: blend MA + Pu to a fixed 50/50 feed. The MA stream is the
+       limiting one (SNF is Pu-rich, MA-poor), so surplus Pu waits in its
+       buffer. That MA-limited feed rate is physical and expected. -->
+  <facility>
+    <name>FeedMixer</name>
+    <config>
+      <Mixer>
+        <in_streams>
+          <stream>
+            <info>
+              <mixing_ratio>0.5</mixing_ratio>
+              <buf_size>2500</buf_size>
+            </info>
+            <commodities>
+              <item><commodity>ma_stream</commodity><pref>1.0</pref></item>
+            </commodities>
+          </stream>
+          <stream>
+            <info>
+              <mixing_ratio>0.5</mixing_ratio>
+              <buf_size>2500</buf_size>
+            </info>
+            <commodities>
+              <item><commodity>pu_stream</commodity><pref>1.0</pref></item>
+            </commodities>
+          </stream>
+        </in_streams>
+        <out_commod>ads_feed</out_commod>
+        <out_buf_size>5000</out_buf_size>
+        <throughput>250000</throughput>
+      </Mixer>
+    </config>
+  </facility>
+
+  <!-- ADS (Case 4): capacity = day-0 actinide mass of this case (~4.4 t).
+       24 steps x 30.4375 d = 730 d ~ the ~750-day Serpent run. -->
+  <facility>
+    <name>MyADS</name>
+    <config>
+      <ads>
+        <incommods><val>ads_feed</val></incommods>
+        <outcommod>ads_out</outcommod>
+        <capacity>4418</capacity>
+        <cycle_time>24</cycle_time>
+        <refuel_time>4</refuel_time>
+        <power_level>3000</power_level>
+        <case_dir>../serpent_cases/no_source_3GW_1.3_vt_5050_puma_Pb_mix</case_dir>
+        <days_per_step>30.4375</days_per_step>
+      </ads>
+    </config>
+  </facility>
+
+  <!-- ONCE-THROUGH: receives the ADS discharge and holds it permanently.
+       In the recycle variant this material returns to MASeparations. -->
+  <facility>
+    <name>SpentFuelStore</name>
+    <config>
+      <Sink>
+        <in_commods><val>ads_out</val></in_commods>
+        <capacity>1e12</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <facility>
+    <name>WasteRepo</name>
+    <config>
+      <Sink>
+        <in_commods><val>sep_waste</val></in_commods>
+        <capacity>1e12</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <region>
+    <name>USA</name>
+    <config><NullRegion/></config>
+    <institution>
+      <name>FuelCycleInst</name>
+      <initialfacilitylist>
+        <entry><prototype>USInventory</prototype><number>1</number></entry>
+        <entry><prototype>MASeparations</prototype><number>1</number></entry>
+        <entry><prototype>FeedMixer</prototype><number>1</number></entry>
+        <entry><prototype>MyADS</prototype><number>1</number></entry>
+        <entry><prototype>SpentFuelStore</prototype><number>1</number></entry>
+        <entry><prototype>WasteRepo</prototype><number>1</number></entry>
+      </initialfacilitylist>
+      <config><NullInst/></config>
+    </institution>
+  </region>
+
+  <recipe>
+    <name>dummy</name>
+    <basis>mass</basis>
+    <nuclide><id>U238</id><comp>1.0</comp></nuclide>
+  </recipe>
+
+</simulation>

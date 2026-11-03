@@ -1,0 +1,104 @@
+<!-- ==========================================================================
+     MINIMAL ADS SMOKE TEST
+     Source [ma_fuel] -> ads [ads_out] -> Sink
+
+     Purpose: confirm the ads archetype loads a Serpent case, loads a core,
+     irradiates it, discharges actinides + fission products, and conserves
+     mass. No separations, no recycle, no us_inventory - just the burner.
+
+     Configured against Case 3 (MA-only, Pb, 3 GW, ~3650 d irradiation):
+       capacity      = 27000 kg  (day-0 actinide mass of the case)
+       cycle_time    = 120 steps
+       days_per_step = 30.4375   -> 120 * 30.4375 = 3653 d ~ the full run
+       duration      = 400 steps -> 3 complete cycles
+
+     Point case_dir at the Case-3 folder. It must contain, on a common
+     time axis:
+       plot_data_15_actinide_masses_full.txt
+       plot_data_14_fission_product_masses.txt
+       plot_data_03_power_vs_time.txt
+     ========================================================================== -->
+<simulation>
+
+  <control>
+    <duration>400</duration>
+    <startmonth>1</startmonth>
+    <startyear>2025</startyear>
+    <decay>never</decay>
+    <explicit_inventory>1</explicit_inventory>
+  </control>
+
+  <archetypes>
+    <spec><lib>einstein</lib><name>ads</name></spec>
+    <spec><lib>cycamore</lib><name>Source</name></spec>
+    <spec><lib>cycamore</lib><name>Sink</name></spec>
+    <spec><lib>agents</lib><name>NullRegion</name></spec>
+    <spec><lib>agents</lib><name>NullInst</name></spec>
+  </archetypes>
+
+  <!-- Infinite-ish MA supply. inventory_size is set finite (not the 1e299
+       default) so the output tables stay readable. -->
+  <facility>
+    <name>FeedSource</name>
+    <config>
+      <Source>
+        <outcommod>ma_fuel</outcommod>
+        <outrecipe>ma_only</outrecipe>
+        <inventory_size>1e7</inventory_size>
+        <throughput>30000</throughput>
+      </Source>
+    </config>
+  </facility>
+
+  <facility>
+    <name>TestADS</name>
+    <config>
+      <ads>
+        <incommods><val>ma_fuel</val></incommods>
+        <outcommod>ads_out</outcommod>
+        <capacity>27000</capacity>
+        <cycle_time>120</cycle_time>
+        <refuel_time>6</refuel_time>
+        <power_level>3000</power_level>
+        <case_dir>./serpent_cases/no_source_892_vt_ma_Pb_3GW_fix_P</case_dir>
+        <days_per_step>30.4375</days_per_step>
+      </ads>
+    </config>
+  </facility>
+
+  <facility>
+    <name>Storage</name>
+    <config>
+      <Sink>
+        <in_commods><val>ads_out</val></in_commods>
+        <capacity>1e9</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <region>
+    <name>TestRegion</name>
+    <config><NullRegion/></config>
+    <institution>
+      <name>TestInst</name>
+      <initialfacilitylist>
+        <entry><prototype>FeedSource</prototype><number>1</number></entry>
+        <entry><prototype>TestADS</prototype><number>1</number></entry>
+        <entry><prototype>Storage</prototype><number>1</number></entry>
+      </initialfacilitylist>
+      <config><NullInst/></config>
+    </institution>
+  </region>
+
+  <!-- Minor-actinide feed matching the Case-3 day-0 vector. -->
+  <recipe>
+    <name>ma_only</name>
+    <basis>mass</basis>
+    <nuclide><id>932370000</id><comp>0.410</comp></nuclide>  <!-- Np237 -->
+    <nuclide><id>952410000</id><comp>0.396</comp></nuclide>  <!-- Am241 -->
+    <nuclide><id>952430000</id><comp>0.132</comp></nuclide>  <!-- Am243 -->
+    <nuclide><id>962440000</id><comp>0.051</comp></nuclide>  <!-- Cm244 -->
+    <nuclide><id>962450000</id><comp>0.006</comp></nuclide>  <!-- Cm245 -->
+  </recipe>
+
+</simulation>

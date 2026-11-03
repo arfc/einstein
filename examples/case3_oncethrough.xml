@@ -1,0 +1,163 @@
+<!-- ==========================================================================
+     EINSTEIN fuel-cycle simulation  -  Case 3: MA-only, 3 GW, Pb-cooled ADS
+     ONCE-THROUGH (no recycle)
+
+     Flowsheet (commodities in brackets):
+       us_inventory  [snf]  ->  Separations  [ma_feed]  ->  ADS  [ads_out]
+       ADS  [ads_out]  ->  SpentFuelStore     (NO recycle: single pass)
+       Separations  [sep_waste]  ->  WasteRepo  (U, Pu, fission products)
+
+     PAIRED RUN: this file and its recycle counterpart are identical except
+     for the recycle wiring. Change one, change both, or the comparison is
+     not controlled.
+
+     DURATION = 1200 steps (100 y), NOT 360. At 360 steps only ~2 cores fit and
+     both variants complete the same 2 cores, so the curves cannot separate.
+     Fresh MA only runs short from pass ~3 onward, which is where recycle acts.
+     Read the 30-year answer off the curve at step 360.
+
+     REQUIRED in case_dir (check they were copied here after extraction):
+        plot_data_15_actinide_masses_full.txt
+        plot_data_14_fission_product_masses.txt
+        plot_data_03_power_vs_time.txt
+     If plot_data_14 is absent the run silently falls back to actinides-only:
+     MassDefect jumps to ~11,200 kg/discharge and no FissionProducts events
+     are written.
+     ========================================================================== -->
+<simulation>
+
+  <control>
+    <duration>1200</duration>
+    <startmonth>1</startmonth>
+    <startyear>2025</startyear>
+    <decay>lazy</decay>
+    <explicit_inventory>1</explicit_inventory>
+  </control>
+
+  <archetypes>
+    <spec><lib>einstein</lib><name>us_inventory</name></spec>
+    <spec><lib>einstein</lib><name>ads</name></spec>
+    <spec><lib>cycamore</lib><name>Separations</name></spec>
+    <spec><lib>cycamore</lib><name>Sink</name></spec>
+    <spec><lib>agents</lib><name>NullRegion</name></spec>
+    <spec><lib>agents</lib><name>NullInst</name></spec>
+  </archetypes>
+
+  <!-- ====== 1) SUPPLY: the US SNF inventory =============================== -->
+  <facility>
+    <name>USInventory</name>
+    <config>
+      <us_inventory>
+        <outcommod>snf</outcommod>
+        <data_dir>../UIUC_data</data_dir>
+        <coordinates_file>./coordinates.sqlite</coordinates_file>
+        <throughput_kg>250000</throughput_kg>
+        <selection_policy>highest_minor_actinide</selection_policy>
+        <allow_partial>1</allow_partial>
+      </us_inventory>
+    </config>
+  </facility>
+
+  <!-- ====== 2) SEPARATIONS: fresh SNF ONLY (no recycle) ==================
+       Pulls Np/Am/Cm into 'ma_feed'. Everything else (U, the Pu bred in the
+       ADS, and the fission products) falls to 'sep_waste'.
+  -->
+  <facility>
+    <name>MASeparations</name>
+    <config>
+      <Separations>
+        <feed_commods>
+          <val>snf</val>
+        </feed_commods>
+        <feedbuf_size>500000</feedbuf_size>
+        <throughput>250000</throughput>
+        <leftover_commod>sep_waste</leftover_commod>
+        <leftoverbuf_size>1e12</leftoverbuf_size>
+        <streams>
+          <item>
+            <commod>ma_feed</commod>
+            <info>
+              <buf_size>30000</buf_size>
+              <efficiencies>
+                <item><comp>Np</comp><eff>0.99</eff></item>
+                <item><comp>Am</comp><eff>0.99</eff></item>
+                <item><comp>Cm</comp><eff>0.99</eff></item>
+              </efficiencies>
+            </info>
+          </item>
+        </streams>
+      </Separations>
+    </config>
+  </facility>
+
+  <!-- ====== 3) THE ADS BURNER (Case 3) ====================================
+       - capacity = day-0 actinide mass of this case. Confirm against
+         day0_actinide.py output and correct if it differs.
+       - 120 steps x 30.4375 d = 3653 d ~ the ~3650-day Serpent run.
+       - discharge = surviving actinides + fission products (mass conserving).
+  -->
+  <facility>
+    <name>MyADS</name>
+    <config>
+      <ads>
+        <incommods><val>ma_feed</val></incommods>
+        <outcommod>ads_out</outcommod>
+        <capacity>27085</capacity>
+        <cycle_time>120</cycle_time>
+        <refuel_time>6</refuel_time>
+        <power_level>3000</power_level>
+        <case_dir>../serpent_cases/no_source_892_vt_ma_Pb_3GW_fix_P</case_dir>
+        <days_per_step>30.4375</days_per_step>
+      </ads>
+    </config>
+  </facility>
+
+  <!-- ====== SPENT ADS FUEL STORE (single-pass discharge) =================
+       Receives the ADS discharge and holds it permanently. In the recycle
+       variant this material returns to MASeparations instead.
+  -->
+  <facility>
+    <name>SpentFuelStore</name>
+    <config>
+      <Sink>
+        <in_commods><val>ads_out</val></in_commods>
+        <capacity>1e12</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <!-- ====== WASTE REPOSITORY (U, Pu, fission products) =================== -->
+  <facility>
+    <name>WasteRepo</name>
+    <config>
+      <Sink>
+        <in_commods><val>sep_waste</val></in_commods>
+        <capacity>1e12</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <!-- ====== DEPLOYMENT =================================================== -->
+  <region>
+    <name>USA</name>
+    <config><NullRegion/></config>
+    <institution>
+      <name>FuelCycleInst</name>
+      <initialfacilitylist>
+        <entry><prototype>USInventory</prototype><number>1</number></entry>
+        <entry><prototype>MASeparations</prototype><number>1</number></entry>
+        <entry><prototype>MyADS</prototype><number>1</number></entry>
+        <entry><prototype>SpentFuelStore</prototype><number>1</number></entry>
+        <entry><prototype>WasteRepo</prototype><number>1</number></entry>
+      </initialfacilitylist>
+      <config><NullInst/></config>
+    </institution>
+  </region>
+
+  <recipe>
+    <name>dummy</name>
+    <basis>mass</basis>
+    <nuclide><id>U238</id><comp>1.0</comp></nuclide>
+  </recipe>
+
+</simulation>

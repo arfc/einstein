@@ -1,0 +1,128 @@
+<!-- ==========================================================================
+     EINSTEIN fuel-cycle simulation  -  Case 1: MA-only, 500 MW, FLiNaK FDS
+     WITH RECYCLE.
+
+     Flowsheet (commodities in brackets):
+       us_inventory  [snf]  ->  Separations  [ma_feed]  ->  ADS  [ads_out]
+       ADS  [ads_out]  ->  Separations           (recycle loop)
+       Separations  [sep_waste]  ->  WasteRepo   (U, Pu, fission products)
+
+     Cases 1 and 2 differ ONLY in carrier salt and are degenerate under the
+     archetype's selection rule. That is harmless here because case_dir points
+     at a SINGLE case folder, so the library holds one case and the match is
+     unambiguous. Do NOT point case_dir at a parent folder holding both.
+
+     WARNING, core mass feasibility: this core is 124974 kg of minor actinides,
+     the same order as the ENTIRE U.S. MA inventory (about 90 t). The inventory
+     may never accumulate a full core, in which case the ADS never loads.
+
+     Cycle: 120 steps x 30.4375 d = 3653 d read on a 12500-day curve, so this
+     is a PARTIAL burn (about 1.7%) per 10-year cycle, not the full
+     irradiation. A full irradiation would need cycle_time near 411 steps.
+     ========================================================================== -->
+<simulation>
+
+  <control>
+    <duration>360</duration>
+    <startmonth>1</startmonth>
+    <startyear>2025</startyear>
+    <decay>never</decay>
+    <explicit_inventory>1</explicit_inventory>
+  </control>
+
+  <archetypes>
+    <spec><lib>einstein</lib><name>us_inventory</name></spec>
+    <spec><lib>einstein</lib><name>ads</name></spec>
+    <spec><lib>cycamore</lib><name>Separations</name></spec>
+    <spec><lib>cycamore</lib><name>Sink</name></spec>
+    <spec><lib>agents</lib><name>NullRegion</name></spec>
+    <spec><lib>agents</lib><name>NullInst</name></spec>
+  </archetypes>
+
+  <facility>
+    <name>USInventory</name>
+    <config>
+      <us_inventory>
+        <outcommod>snf</outcommod>
+        <data_dir>../UIUC_data</data_dir>
+        <coordinates_file>./coordinates.sqlite</coordinates_file>
+        <throughput_kg>1200000</throughput_kg>
+        <selection_policy>highest_minor_actinide</selection_policy>
+        <allow_partial>1</allow_partial>
+      </us_inventory>
+    </config>
+  </facility>
+
+  <!-- Accepts fresh SNF AND the recycled ADS discharge. Removing the
+       <val>ads_out</val> line below converts this to a once-through case. -->
+  <facility>
+    <name>MASeparations</name>
+    <config>
+      <Separations>
+        <feed_commods>
+          <val>snf</val>
+          <val>ads_out</val>
+        </feed_commods>
+        <feedbuf_size>1e9</feedbuf_size>
+        <throughput>1200000</throughput>
+        <leftover_commod>sep_waste</leftover_commod>
+        <leftoverbuf_size>1e12</leftoverbuf_size>
+        <streams>
+          <item>
+            <commod>ma_feed</commod>
+            <info>
+              <buf_size>-1</buf_size>
+              <efficiencies>
+                <item><comp>Np</comp><eff>0.99</eff></item>
+                <item><comp>Am</comp><eff>0.99</eff></item>
+                <item><comp>Cm</comp><eff>0.99</eff></item>
+              </efficiencies>
+            </info>
+          </item>
+        </streams>
+      </Separations>
+    </config>
+  </facility>
+
+  <facility>
+    <name>MyADS</name>
+    <config>
+      <ads>
+        <incommods><val>ma_feed</val></incommods>
+        <outcommod>ads_out</outcommod>
+        <capacity>124974</capacity>
+        <cycle_time>120</cycle_time>
+        <refuel_time>6</refuel_time>
+        <power_level>500</power_level>
+        <case_dir>./serpent_cases/long_no_source_500MW_2377_vt_MA_PWR_flinak</case_dir>
+        <days_per_step>30.4375</days_per_step>
+      </ads>
+    </config>
+  </facility>
+
+  <facility>
+    <name>WasteRepo</name>
+    <config>
+      <Sink>
+        <in_commods><val>sep_waste</val></in_commods>
+        <capacity>1e12</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <region>
+    <name>USA</name>
+    <config><NullRegion/></config>
+    <institution>
+      <name>FuelCycleInst</name>
+      <initialfacilitylist>
+        <entry><prototype>USInventory</prototype><number>1</number></entry>
+        <entry><prototype>MASeparations</prototype><number>1</number></entry>
+        <entry><prototype>MyADS</prototype><number>1</number></entry>
+        <entry><prototype>WasteRepo</prototype><number>1</number></entry>
+      </initialfacilitylist>
+      <config><NullInst/></config>
+    </institution>
+  </region>
+
+</simulation>
