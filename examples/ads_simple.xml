@@ -1,0 +1,93 @@
+<!-- Minimal runnable ADS demo: Source (MA fuel) -> ads -> Sink
+
+     case_dir must point at a folder laid out as ONE SUBFOLDER PER CASE, each
+     holding Wen's plot_data_*.txt files, e.g.:
+
+       serpent_cases/
+         long_no_source_500MW_2377_vt_MA_PWR_flinak/
+             plot_data_02_keff_vs_time.txt
+             plot_data_03_power_vs_time.txt
+             plot_data_05_actinide_total_mass.txt
+             plot_data_06_actinide_masses.txt
+         no_source_892_vt_ma_Pb_3GW_fix_P/
+             ...
+
+     Matching uses power + coarse composition. power_level=500 below + the
+     MA-only feed recipe will select one of the 500 MW MA cases.
+-->
+<simulation>
+  <control>
+    <duration>24</duration>
+    <startmonth>1</startmonth>
+    <startyear>2025</startyear>
+  </control>
+
+  <archetypes>
+    <spec><lib>einstein</lib><name>ads</name></spec>
+    <spec><lib>cycamore</lib><name>Source</name></spec>
+    <spec><lib>cycamore</lib><name>Sink</name></spec>
+    <spec><lib>agents</lib><name>NullRegion</name></spec>
+    <spec><lib>agents</lib><name>NullInst</name></spec>
+  </archetypes>
+
+  <facility>
+    <name>FeedSource</name>
+    <config>
+      <Source>
+        <outcommod>ads_feed</outcommod>
+        <outrecipe>ma_feed</outrecipe>
+        <throughput>1000</throughput>
+      </Source>
+    </config>
+  </facility>
+
+  <facility>
+    <name>MyADS</name>
+    <config>
+      <ads>
+        <incommods><val>ads_feed</val></incommods>
+        <outcommod>ads_out</outcommod>
+        <capacity>1000</capacity>
+        <cycle_time>12</cycle_time>
+        <refuel_time>1</refuel_time>
+        <power_level>500</power_level>
+        <case_dir>./serpent_cases</case_dir>
+        <fidelity>closest</fidelity>
+        <conserve_mass>0</conserve_mass>
+      </ads>
+    </config>
+  </facility>
+
+  <facility>
+    <name>Storage</name>
+    <config>
+      <Sink>
+        <in_commods><val>ads_out</val></in_commods>
+        <capacity>1e6</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <region>
+    <name>SingleRegion</name>
+    <config><NullRegion/></config>
+    <institution>
+      <name>SingleInstitution</name>
+      <initialfacilitylist>
+        <entry><prototype>FeedSource</prototype><number>1</number></entry>
+        <entry><prototype>MyADS</prototype><number>1</number></entry>
+        <entry><prototype>Storage</prototype><number>1</number></entry>
+      </initialfacilitylist>
+      <config><NullInst/></config>
+    </institution>
+  </region>
+
+  <recipe>
+    <name>ma_feed</name>
+    <basis>mass</basis>
+    <nuclide><id>932370000</id><comp>0.45</comp></nuclide>  <!-- Np237 -->
+    <nuclide><id>952410000</id><comp>0.45</comp></nuclide>  <!-- Am241 -->
+    <nuclide><id>952430000</id><comp>0.10</comp></nuclide>  <!-- Am243 -->
+  </recipe>
+
+</simulation>
