@@ -1,0 +1,82 @@
+<!-- ==========================================================================
+     MINIMAL us_inventory SMOKE TEST
+       us_inventory  [snf]  ->  Sink
+
+     Purpose: confirm the us_inventory archetype on its own -
+       - reads the Standards 5.0.1 JSONL assemblies from data_dir,
+       - attaches lat/long from coordinates_file,
+       - applies the selection policy, and
+       - bids and trades material to a downstream Sink.
+     No separations, no ADS - just supply -> sink.
+
+     BEFORE RUNNING, set these to real paths on your machine:
+       data_dir         -> the folder of JSONL assembly files (one per facility)
+       coordinates_file -> coordinates.sqlite (or remove the line to skip coords)
+
+     WHAT TO CHECK in the output database after it runs:
+       - Transactions / Resources : the Sink received 'snf' each step, capped at
+         throughput_kg (50,000 kg here).
+       - ExplicitInventory         : us_inventory's held mass draws down over time.
+       - AgentPosition             : each supplied assembly carries a lat/long
+         (non-zero if coordinates_file resolved).
+       - Compositions              : the traded material is real SNF isotopics
+         (U-dominant, ~1% Pu, trace minor actinides).
+     ========================================================================== -->
+<simulation>
+
+  <control>
+    <duration>12</duration>           <!-- 1 year, monthly steps -->
+    <startmonth>1</startmonth>
+    <startyear>2025</startyear>
+    <decay>never</decay>
+    <explicit_inventory>1</explicit_inventory>
+  </control>
+
+  <archetypes>
+    <spec><lib>einstein</lib><name>us_inventory</name></spec>
+    <spec><lib>cycamore</lib><name>Sink</name></spec>
+    <spec><lib>agents</lib><name>NullRegion</name></spec>
+    <spec><lib>agents</lib><name>NullInst</name></spec>
+  </archetypes>
+
+  <!-- ====== THE MODULE UNDER TEST ======================================= -->
+  <facility>
+    <name>USInventory</name>
+    <config>
+      <us_inventory>
+        <outcommod>snf</outcommod>
+        <data_dir>../UIUC_data</data_dir>
+        <coordinates_file>./coordinates.sqlite</coordinates_file>
+        <throughput_kg>50000</throughput_kg>
+        <selection_policy>highest_minor_actinide</selection_policy>
+        <allow_partial>1</allow_partial>
+      </us_inventory>
+    </config>
+  </facility>
+
+  <!-- ====== SINK: pulls 'snf' so the inventory has someone to trade with == -->
+  <facility>
+    <name>SNFSink</name>
+    <config>
+      <Sink>
+        <in_commods><val>snf</val></in_commods>
+        <capacity>1e12</capacity>
+      </Sink>
+    </config>
+  </facility>
+
+  <!-- ====== DEPLOYMENT =================================================== -->
+  <region>
+    <name>USA</name>
+    <config><NullRegion/></config>
+    <institution>
+      <name>TestInst</name>
+      <initialfacilitylist>
+        <entry><prototype>USInventory</prototype><number>1</number></entry>
+        <entry><prototype>SNFSink</prototype><number>1</number></entry>
+      </initialfacilitylist>
+      <config><NullInst/></config>
+    </institution>
+  </region>
+
+</simulation>
