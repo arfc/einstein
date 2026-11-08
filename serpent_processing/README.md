@@ -36,8 +36,7 @@ Both use kilograms and columns of the form `Step`, `Day [d]`, and `Nuclide_kg`. 
 ## Important checks
 
 - **Back up the two output tables first:** rerunning the script overwrites them.
-- Check terminal warnings: segments with different `ZAI` isotope lists are skipped.
 - Confirm the resulting tables cover the expected irradiation days, have matching increasing time axes, and contain plausible nonzero masses.
-- The selected Z = 28–72 fission-product range does **not** include every non-actinide (e.g., lead or coolant), so these tables alone are not a complete mass balance.
+
 
 For plotting instructions, see `../plotting/README.md`.
