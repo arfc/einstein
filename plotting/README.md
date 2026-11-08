@@ -65,9 +65,5 @@ For ADS 2, use its SQLite file and `--case-label 'ADS 2'`. Produces a stacked-ba
 
 - For plots using isotopic inventories, the Cyclus input should contain `<explicit_inventory>1</explicit_inventory>` in its control block.
 - `MyADS`, `SpentFuelStore`, `CASE_NAME`, and the database filenames are **examples**. Use the names and paths from your own simulation.
-- The scripts read existing results; they **do not run Cyclus or Serpent**. To generate new results, the relevant archetypes, input XML, and depletion data are required.
 - `plot_selection_policies.py` is an **offline policy comparison**, not an exact simulation of bids, throughput, or elapsed time. Its x-axis counts assemblies, not months.
-- Check that your SQLite database contains the intended simulation: some scripts select the **newest run** if multiple runs share a file.
-- The before/after script requires a clean ADS discharge snapshot in the receiving facility; it may stop with an explanatory error if one cannot be identified.
 
-These are recovered analysis scripts. Confirm the original input datasets and plotted values before treating results as an exact reproduction of the thesis.
