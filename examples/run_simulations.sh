@@ -21,21 +21,21 @@ echo "3.R: 100% Actinides, 100 years, recycling loop-back"
 cyclus -i case3_recycle.xml -o case3_RC.sqlite
 
 duration=$SECONDS
-echo "Case 3 recycling finished in $((duration / 60))m $((duration % 60))s."
+echo "Case 3 recycling finished at $((duration / 60))m $((duration % 60))s."
 
 
 echo "4.O: 50% Actinides and 50% Plutonium, 30 years, once-through"
 cyclus -i case4_oncethrough.xml -o case4_OT.sqlite
 
 duration=$SECONDS
-echo "Case 4 once-through finished in $((duration / 60))m $((duration % 60))s."
+echo "Case 4 once-through finished at $((duration / 60))m $((duration % 60))s."
 
 
 echo "4.R: 50% Actinides and 50% Plutonium, 30 years, recycling loop-back"
 cyclus -i case4_recycle.xml -o case4_RC.sqlite
 
 duration=$SECONDS
-echo "Case 4 recycling finished in $((duration / 60))m $((duration % 60))s."
+echo "Case 4 recycling finished at $((duration / 60))m $((duration % 60))s."
 
 
 echo "All four done"
