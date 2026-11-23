@@ -21,7 +21,16 @@ python3 -m pip install numpy pandas matplotlib
 
 Run the following commands from the `plotting/` folder. Replace example paths and filenames with your own. You need the matching **STANDARDS assembly files**, **Cyclus `.sqlite` output**, or **Serpent case folder**, depending on the script.
 
-## How to run
+## How to run (script)
+
+1. ```bash
+   bash plot_data.sh
+   ```
+   The resulting graphing data will be in a single folder, organized by case.
+
+
+
+## How to run (manual)
 
 **1. Selection policies** — uses STANDARDS files; no Cyclus run needed:
 
