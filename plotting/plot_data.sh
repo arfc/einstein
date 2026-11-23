@@ -104,7 +104,7 @@ python3 plot_fission_yields_and_burnup.py \
   --db ../examples/case4_RC.sqlite -o figs_ma
 
 echo "4.4. Running ADS core before/after plots..."
-python3 before_after_edit.py ../examples/case4_RC.sqlite --ads MyADS --case-label 'ADS 1' --output ads1_before_after.png
+python3 plot_case4_RC_before_after ../examples/case4_RC.sqlite --ads MyADS --case-label 'ADS 1' --output ads1_before_after.png
 
 mv ads1_before_after.png ./case4_recycle/
 mv figs_ma ./case4_recycle/
