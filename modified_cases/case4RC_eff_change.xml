@@ -118,7 +118,7 @@
         <cycle_time>24</cycle_time>
         <refuel_time>4</refuel_time>
         <power_level>3000</power_level>
-        <case_dir>./serpent_cases/no_source_3GW_1.3_vt_5050_puma_Pb_mix</case_dir>
+        <case_dir>../examples/serpent_cases/no_source_3GW_1.3_vt_5050_puma_Pb_mix</case_dir>
         <days_per_step>30.4375</days_per_step>
       </ads>
     </config>
