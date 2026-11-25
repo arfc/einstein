@@ -43,7 +43,7 @@ python3 plot_selection_policies.py ../data/standards --set A -o policy_figs
 **2. General fuel-cycle plots** — uses a Cyclus SQLite database:
 
 ```bash
-python3 plot_fuel_cycle.py ../runs/ma_recycle_100.sqlite \
+python3 plot_fuel_cycle.py ../examples/ma_recycle_100.sqlite \
   -o figs_ma --ads MyADS --ref 0 100 \
   --case-dir ../serpent_cases --cycle-time 120
 ```
@@ -63,7 +63,7 @@ Generates `11_fp_yield_curve.png` and `12_loaded_vs_transmuted.png`. You can sup
 **4. ADS core before/after** — uses a Cyclus SQLite database:
 
 ```bash
-python3 plot_ads_before_after.py ../runs/ma_recycle_100.sqlite \
+python3 plot_ads_before_after.py ../examples/ma_recycle_100.sqlite \
   --ads MyADS --case-label 'ADS 1' \
   --output ads1_before_after.png --csv ads1_before_after.csv
 ```
