@@ -24,6 +24,7 @@
       <us_inventory>
         <outcommod>snf</outcommod>
         <data_dir>../UIUC_data</data_dir>
+        <coordinates_file>./coordinates.sqlite</coordinates_file>
         <throughput_kg>250000</throughput_kg>
         <selection_policy>highest_minor_actinide</selection_policy>
         <allow_partial>1</allow_partial>
