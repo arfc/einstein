@@ -24,7 +24,7 @@
       <us_inventory>
         <outcommod>snf</outcommod>
         <data_dir>../UIUC_data</data_dir>
-        <coordinates_file>./coordinates.sqlite</coordinates_file>
+        <coordinates_file>../examples/coordinates.sqlite</coordinates_file>
         <throughput_kg>250000</throughput_kg>
         <selection_policy>highest_minor_actinide</selection_policy>
         <allow_partial>1</allow_partial>
@@ -118,7 +118,7 @@
         <cycle_time>24</cycle_time>
         <refuel_time>4</refuel_time>
         <power_level>3000</power_level>
-        <case_dir>./ADS_serpent_data/nature_explicit_nosource_refuel</case_dir>
+        <case_dir>../ADS_serpent_data/nature_explicit_nosource_refuel</case_dir>
         <days_per_step>30.4375</days_per_step>
       </ads>
     </config>
